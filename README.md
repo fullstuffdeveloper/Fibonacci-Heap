@@ -77,7 +77,7 @@ This project demonstrates the functionality of Fibonacci Heaps for educational a
 
 ## Contributors
 
-- **[Your Name]** - Implementation and Documentation
+- **[Abhishek Jha]** - Implementation and Documentation
 
 ## References
 
