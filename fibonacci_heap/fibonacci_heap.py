@@ -127,45 +127,87 @@ class FibonacciHeap:
         y.mark = False
 
     # Decrease the key of a specific node
+    # Decrease the key of a specific node
     def decrease_key(self, key, new_key):
         """Decrease the key of a specific node."""
+        print(f"Decreasing key {key} to {new_key}")
+
+        # Ensure the key exists
         if key not in self.node_map:
             raise ValueError(f"Key {key} not found in the heap.")
         if new_key >= key:
             raise ValueError("New key must be less than the current key.")
 
-        # Retrieve the node
+        # Retrieve the node and update its key
         node = self.node_map[key]
-        del self.node_map[key]  # Remove the old key from the map
+        del self.node_map[key]  # Remove the old key
         node.key = new_key  # Update the node's key
-        self.node_map[new_key] = node  # Update the map with the new key
+        self.node_map[new_key] = node  # Add the new key
 
+        # Handle cascading cuts if needed
         parent = node.parent
         if parent and node.key < parent.key:
+            print(f"Cutting node {node.key} from parent {parent.key}")
             self._cut(node, parent)
             self._cascading_cut(parent)
 
+        # Update the minimum node if necessary
         if node.key < self.min_node.key:
             self.min_node = node
 
+        print(f"Key {key} decreased to {new_key}.")
+
+
+
+
+
+
+    def _remove_node(self, node):
+        """Remove a node directly from the heap."""
+        print(f"Removing node with key {node.key}")
+        # Remove from parent's child list if necessary
+        if node.parent:
+            self._cut(node, node.parent)
+
+        # Remove from root list
+        node.left.right = node.right
+        node.right.left = node.left
+
+        # Update min_node if needed
+        if node == self.min_node:
+            if node.right == node:  # Single node case
+                self.min_node = None
+            else:
+                self.min_node = node.right
+                self._consolidate()
+
+        self.node_count -= 1
+        print(f"Node with key {node.key} successfully removed.")
 
     # Cut node x from its parent y
-    def _cut(self, x, y):
-        if x.right == x:
-            y.child = None
+    def _cut(self, node, parent):
+        """Cut `node` from its parent and add it to the root list."""
+        # Remove the node from its sibling list
+        if node.right == node:  # Only child case
+            parent.child = None
         else:
-            x.right.left = x.left
-            x.left.right = x.right
-            if y.child == x:
-                y.child = x.right
-        y.degree -= 1
-        # Add x to root list
-        x.left = self.min_node
-        x.right = self.min_node.right
-        self.min_node.right = x
-        x.right.left = x
-        x.parent = None
-        x.mark = False
+            node.right.left = node.left
+            node.left.right = node.right
+            if parent.child == node:
+                parent.child = node.right  # Update parent.child
+
+        parent.degree -= 1
+
+        # Add node to root list
+        node.left = self.min_node
+        node.right = self.min_node.right
+        self.min_node.right = node
+        node.right.left = node
+
+        # Update node properties
+        node.parent = None
+        node.mark = False
+
 
     # Perform a cascading cut on node y
     def _cascading_cut(self, y):
@@ -178,9 +220,9 @@ class FibonacciHeap:
                 self._cascading_cut(z)
 
     # Delete a specific node from the heap
-    def delete(self, x):
-        self.decrease_key(x, float('-inf'))
-        self.extract_min()
+    # def delete(self, x):
+    #     self.decrease_key(x, float('-inf'))
+    #     self.extract_min()
 
     # Merge two Fibonacci heaps
     def merge(self, other_heap):
@@ -250,13 +292,33 @@ class FibonacciHeap:
                     break
         
         return result
-
     def delete(self, key):
         """Delete a node with the given key."""
+        print(f"Attempting to delete key: {key}")
+        
+        # Ensure the key exists
         if key not in self.node_map:
             raise ValueError(f"Key {key} not found in the heap.")
-        self.decrease_key(key, float('-inf'))  # Decrease key to -∞ to extract
-        self.extract_min()
+        
+        # Retrieve the node to be deleted
+        node = self.node_map[key]
+        print(f"Node found: {node.key}. Decreasing key to -inf for removal.")
+        
+        # Decrease the key to -inf
+        self.decrease_key(key, float('-inf'))
+        
+        # Extract the minimum node
+        extracted_node = self.extract_min()
+        print(f"Extracted node: {extracted_node.key}. Expected node: -inf.")
+        
+        # Remove from node_map
+        if key in self.node_map:
+            del self.node_map[key]
+        print(f"Key {key} successfully deleted.")
+
+
+
+
 
     def _iterate_root_list(self):
         if self.min_node is None:
