@@ -128,34 +128,24 @@ class FibonacciHeap:
 
     # Decrease the key of a specific node
     # Decrease the key of a specific node
-    def decrease_key(self, key, new_key):
+    def decrease_key(self, node, new_key):
         """Decrease the key of a specific node."""
-        print(f"Decreasing key {key} to {new_key}")
-
-        # Ensure the key exists
-        if key not in self.node_map:
-            raise ValueError(f"Key {key} not found in the heap.")
-        if new_key >= key:
+        if new_key > node.key:
             raise ValueError("New key must be less than the current key.")
 
-        # Retrieve the node and update its key
-        node = self.node_map[key]
-        del self.node_map[key]  # Remove the old key
-        node.key = new_key  # Update the node's key
-        self.node_map[new_key] = node  # Add the new key
+        print(f"Decreasing key of node {node.key} to {new_key}.")
+        node.key = new_key
 
-        # Handle cascading cuts if needed
         parent = node.parent
         if parent and node.key < parent.key:
-            print(f"Cutting node {node.key} from parent {parent.key}")
+            print(f"Cutting node {node.key} from parent {parent.key}.")
             self._cut(node, parent)
             self._cascading_cut(parent)
 
-        # Update the minimum node if necessary
         if node.key < self.min_node.key:
+            print(f"Updating min node to {node.key}.")
             self.min_node = node
 
-        print(f"Key {key} decreased to {new_key}.")
 
 
 
@@ -259,7 +249,7 @@ class FibonacciHeap:
     def display_statistics(self):
         print("\nHeap Statistics:")
         print(f"Total nodes: {self.total_nodes}")
-        print(f"Minimum key: {self.min_node.key if self.min_node else 'None'}")
+        print(f"Minimum key: {self.find_min.key if self.find_min else 'None'}")
         print(f"Number of roots: {len(self.root_list)}")
         print(f"Marked nodes: {sum(1 for node in self.node_map.values() if node.mark)}")
 
@@ -292,29 +282,15 @@ class FibonacciHeap:
                     break
         
         return result
-    def delete(self, key):
-        """Delete a node with the given key."""
-        print(f"Attempting to delete key: {key}")
-        
-        # Ensure the key exists
-        if key not in self.node_map:
-            raise ValueError(f"Key {key} not found in the heap.")
-        
-        # Retrieve the node to be deleted
-        node = self.node_map[key]
-        print(f"Node found: {node.key}. Decreasing key to -inf for removal.")
-        
-        # Decrease the key to -inf
-        self.decrease_key(key, float('-inf'))
-        
-        # Extract the minimum node
-        extracted_node = self.extract_min()
-        print(f"Extracted node: {extracted_node.key}. Expected node: -inf.")
-        
-        # Remove from node_map
-        if key in self.node_map:
-            del self.node_map[key]
-        print(f"Key {key} successfully deleted.")
+    def delete(self, node):
+        """Delete a specific node from the heap."""
+        print(f"Deleting node {node.key}.")
+        self.decrease_key(node, float('-inf'))
+        min_node = self.extract_min()
+        if min_node != node:
+            print(f"Warning: Extracted node {min_node.key} does not match expected node {node.key}.")
+        self.nodes.remove(node)  # Remove from tracked nodes
+
 
 
 
